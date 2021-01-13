@@ -55,9 +55,13 @@ template <typename F> detail::defer_raii<F> defer(F &&f)
   return {std::forward<F>(f)};
 }
 
+#define DEFER_ACTUALLY_JOIN(x, y) x##y
+#define DEFER_JOIN(x, y) DEFER_ACTUALLY_JOIN(x, y)
 #ifdef __COUNTER__
-#define DEFER(lambda__) const auto &defer_object_##__COUNTER__ = ext::defer([&]() lambda__)
+  #define DEFER_UNIQUE_VARNAME(x) DEFER_JOIN(x, __COUNTER__)
 #else
-#define DEFER(lambda__) const auto &defer_object_##__LINE__ = ext::defer([&]() lambda__)
+  #define DEFER_UNIQUE_VARNAME(x) DEFER_JOIN(x, __LINE__)
 #endif
+
+#define DEFER(lambda__) [[maybe_unused]] const auto& DEFER_UNIQUE_VARNAME(defer_object) = ext::defer([&]() lambda__)
 }  // namespace ext
